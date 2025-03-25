@@ -1,0 +1,149 @@
+﻿@{
+    ViewData["Title"] = "Cửa Hàng Mẹ & Bé";
+  
+}
+<h1 class="title-header">@ViewData["Title"]</h1>
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Sidebar: Danh mục sản phẩm -->
+       
+        <div class="col-md-3">
+            <div class="dropdown mb-3 w-100">
+                <button class="btn btn-outline-primary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                    Danh mục sản phẩm
+                </button>
+                <ul class="dropdown-menu w-100">
+                    <li><a class="dropdown-item active" href="#" onclick="loadProducts('all')">Tất cả sản phẩm</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="loadProducts('quanao')">Quần Áo</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="loadProducts('sua')">Sữa Bột</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="loadProducts('bim')">Bỉm Tã</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="loadProducts('dochoi')">Đồ Chơi</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Content: Thanh tìm kiếm + danh sách sản phẩm -->
+        <div class="col-md-9">
+            <h2 class="text-center">Cửa Hàng Mẹ & Bé</h2>
+           
+
+            <!-- Thanh tìm kiếm -->
+            <form id="search-form" class="mb-4">
+                <div class="input-group">
+                    <input type="text" id="search-box" class="form-control" name="query" placeholder="Ba mẹ cần tìm gì cho bé?" autocomplete="off">
+                    <button type="submit" id="search-btn" class="btn btn-primary">🔍</button>
+                    <button type="button" id="clear-btn" class="btn btn-danger" style="display: none;">❌</button>
+                </div>
+            </form>
+
+            <!-- Kết quả gợi ý -->
+            <div id="search-suggestions" class="dropdown"></div>
+
+            <h4 id="category-title">Tất cả sản phẩm</h4>
+            <div id="product-list" class="row">
+                @* Danh sách sản phẩm sẽ được cập nhật bằng AJAX *@
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function loadProducts(category) {
+            let search = $("#search-box").val();
+
+            $("#category-title").text(category === "all" ? "Tất cả sản phẩm" : category.toUpperCase());
+
+            $.ajax({
+                url: "/Store/GetProducts",
+                type: "GET",
+                data: { category: category, search: search },
+                success: function (data) {
+                    $("#product-list").html(data);
+                }
+            });
+
+            $(".dropdown-item").removeClass("active");
+            $(".dropdown-item").filter(function() {
+                return $(this).text().trim() === (category === "all" ? "Tất cả sản phẩm" : category.toUpperCase());
+            }).addClass("active");
+        }
+
+        $(document).ready(function () {
+            loadProducts("all");
+
+            const searchBox = $("#search-box");
+            const clearBtn = $("#clear-btn");
+            const suggestionsBox = $("#search-suggestions");
+
+            // Hiện nút xóa khi nhập
+            searchBox.on("input", function () {
+                clearBtn.toggle(this.value.length > 0);
+
+                $.get(`/Store/GetProducts?search=${this.value}`, function (data) {
+                    suggestionsBox.html(data).toggle(data.trim() !== "");
+                });
+            });
+
+            // Xử lý submit form tìm kiếm
+            $("#search-form").on("submit", function (e) {
+                e.preventDefault();
+                loadProducts("all");
+            });
+
+            // Xóa nội dung tìm kiếm
+            clearBtn.on("click", function () {
+                searchBox.val("");
+                clearBtn.hide();
+                suggestionsBox.hide();
+                loadProducts("all");
+            });
+
+            // Ẩn gợi ý khi click ngoài
+            $(document).on("click", function (event) {
+                if (!searchBox.is(event.target) && !suggestionsBox.is(event.target) && suggestionsBox.has(event.target).length === 0) {
+                    suggestionsBox.hide();
+                }
+            });
+
+            // Xử lý thêm vào giỏ hàng
+            $(document).on("click", ".add-to-cart", function () {
+                var productId = $(this).data("id");
+
+                $.ajax({
+                    url: "/Cart/Add",
+                    type: "POST",
+                    data: { id: productId },
+                    success: function (response) {
+                        if (response.success) {
+                            $("#cart-count").text(response.cartCount);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi!',
+                                text: response.message
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi!',
+                            text: 'Có lỗi xảy ra khi thêm sản phẩm!'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

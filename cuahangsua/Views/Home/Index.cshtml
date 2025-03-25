@@ -1,0 +1,75 @@
+﻿@model List<cuahangsua.Models.Product>
+
+@{
+    ViewData["Title"] = "Trang Chủ - Cửa Hàng Mẹ & Bé";
+    Layout = "_Layout";
+}
+
+<!-- Main Content -->
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 text-center">
+            <!-- Welcome Message -->
+            <h1 class="welcome-title">
+                Chào Mừng Bạn Đến Với Cửa Hàng Mẹ Bỉm 
+            </h1>
+            <p class="welcome-description">
+                Khám phá bộ sưu tập các sản phẩm sữa cho bé, đồ chơi sáng tạo và quần áo thời trang cho trẻ em.
+            </p>
+
+            <!-- Category Buttons -->
+            <div class="row justify-content-center g-3">
+                <div class="col-6 col-md-3 d-flex">
+                    <a asp-controller="Milk" asp-action="Index" class="category-card">
+                        <strong>Sữa Cho Bé</strong>
+                        <p>Chọn mua sữa với các thương hiệu hàng đầu.</p>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3 d-flex">
+                    <a asp-controller="Toys" asp-action="Index" class="category-card">
+                        <strong>Đồ Chơi</strong>
+                        <p>Đồ chơi giúp phát triển trí tuệ cho bé.</p>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3 d-flex">
+                    <a asp-controller="Clothes" asp-action="Index" class="category-card">
+                        <strong>Quần Áo</strong>
+                        <p>Quần áo dễ thương, thoải mái cho bé.</p>
+                    </a>
+                </div>
+                <div class="col-6 col-md-3 d-flex">
+                    <a asp-controller="Bim" asp-action="Index" class="category-card">
+                        <strong>Bỉm</strong>
+                        <p>Bỉm chất lượng cao, thấm hút nhanh.</p>
+                    </a>
+                   
+                </div>
+            </div>
+
+            <!-- Explore Now Section -->
+            <div class="explore-now mt-5">
+                <h3>Khám Phá Ngay</h3>
+                <p>Hãy bắt đầu mua sắm ngay hôm nay và tận hưởng ưu đãi hấp dẫn!</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a asp-controller="Milk" asp-action="Index" class="btn btn-success">
+                        Mua Ngay Sữa Cho Bé
+                    </a>
+                    <a asp-controller="Clothes"  asp-action="Index" class="btn btn-success">
+                        Mua Ngay Quần Áo
+                    </a>
+                    <a asp-controller="Toys" asp-action="Index" class="btn btn-success">
+                        Mua Ngay Đồ Chơi
+                    </a>
+                    <a asp-controller="Bim" asp-action="Index" class="btn btn-success">
+                        Mua Ngay Bỉm
+                        </a>
+                  
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="text-center mt-3">
+    <a asp-action="Index" asp-controller="Store" class="btn btn-primary">Xem Chi Tiết Cửa Hàng >> </a>
+</div>
+

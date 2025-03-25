@@ -1,0 +1,194 @@
+﻿@model List<cuahangsua.Models.Product>
+@{
+    ViewData["Title"] = "Quản lý Sản phẩm";
+}
+<a href="/Admin/Login" class="btn btn-secondary mb-3">⬅ Quay Lại</a>
+
+<h2>Quản lý Sản phẩm</h2>
+
+<!-- Nút mở form thêm sản phẩm -->
+<button id="btn-show-form" class="btn btn-success mb-3">Thêm sản phẩm</button>
+
+<!-- Form thêm/sửa sản phẩm -->
+<form id="product-form" style="display: none;">
+    <input type="hidden" id="product-id">
+    <div class="mb-3">
+        <label class="form-label">Tên sản phẩm:</label>
+        <input type="text" id="product-name" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Giá:</label>
+        <input type="number" id="product-price" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">URL Hình ảnh:</label>
+        <input type="text" id="product-image" class="form-control">
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Danh mục:</label>
+        <select id="product-category" class="form-control" required>
+            <option value="">Chọn danh mục</option>
+            <option value="sua">Sữa</option>
+            <option value="clothes">Quần Áo</option>
+            <option value="bim">Bỉm</option>
+            <option value="toys">Đồ Chơi</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Mô tả:</label>
+        <textarea id="product-description" class="form-control"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <button type="button" id="btn-cancel" class="btn btn-secondary">Hủy</button>
+</form>
+
+<table class="table mt-4">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên sản phẩm</th>
+            <th>Giá</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody id="product-table">
+        @foreach (var product in Model)
+        {
+            <tr data-id="@product.Id">
+                <td>@product.Id</td>
+                <td class="product-name">@product.Name</td>
+                <td class="product-price">@product.Price</td>
+                <td>
+                    <button class="btn btn-info btn-details">Chi tiết</button>
+                    <button class="btn btn-warning btn-edit">Sửa</button>
+                    <button class="btn btn-danger btn-delete">Xóa</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function () {
+        // Mở form thêm sản phẩm
+        $("#btn-show-form").click(function () {
+            $("#product-form").show();
+            $("#btn-show-form").hide();
+            $("#product-id").val("");
+            $("#product-name").val("");
+            $("#product-price").val("");
+            $("#product-image").val("");
+            $("#product-category").val("");
+            $("#product-description").val("");
+        });
+
+        // Hủy nhập
+        $("#btn-cancel").click(function () {
+            $("#product-form").hide();
+            $("#btn-show-form").show();
+        });
+
+        // Xử lý lưu sản phẩm (thêm/sửa)
+        $("#product-form").submit(function (e) {
+            e.preventDefault();
+            var id = $("#product-id").val();
+            var name = $("#product-name").val().trim();
+            var price = parseFloat($("#product-price").val().trim());
+            var image = $("#product-image").val().trim();
+            var category = $("#product-category").val();
+            var description = $("#product-description").val().trim();
+
+            if (!name || isNaN(price) || price <= 0 || !category) {
+                Swal.fire('Lỗi!', 'Tên sản phẩm, giá và danh mục phải hợp lệ!', 'error');
+                return;
+            }
+
+            var productData = {
+                Id: id || 0,
+                Name: name,
+                Price: price,
+                ImageUrl: image || "/images/default.png",
+                Category: category,
+                Description: description
+            };
+
+            $.ajax({
+                type: "POST",
+                url: id ? "/Admin/UpdateProduct" : "/Admin/AddProduct",
+                data: productData,
+                success: function (res) {
+                    if (res.success) {
+                        Swal.fire('Thành công!', res.message, 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Lỗi!', res.message, 'error');
+                    }
+                },
+                error: function () {
+                    Swal.fire('Lỗi!', 'Có lỗi xảy ra!', 'error');
+                }
+            });
+        });
+
+        // Xem chi tiết sản phẩm
+        $(".btn-details").click(function () {
+            var id = $(this).closest("tr").data("id");
+            window.location.href = "/Admin/ProductDetails/" + id;
+        });
+
+        // Nút sửa
+        $(".btn-edit").click(function () {
+            var id = $(this).closest("tr").data("id");
+            $.get("/Admin/GetProduct/" + id, function (res) {
+                if (res.success) {
+                    $("#product-id").val(id);
+                    $("#product-name").val(res.product.name);
+                    $("#product-price").val(res.product.price);
+                    $("#product-image").val(res.product.imageUrl);
+                    $("#product-category").val(res.product.category);
+                    $("#product-description").val(res.product.description);
+                    $("#product-form").show();
+                    $("#btn-show-form").hide();
+                } else {
+                    Swal.fire('Lỗi!', res.message, 'error');
+                }
+            });
+        });
+
+        // Nút xóa
+        $(".btn-delete").click(function () {
+            var id = $(this).closest("tr").data("id");
+            Swal.fire({
+                title: 'Xóa sản phẩm?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/Admin/DeleteProduct",
+                        data: { Id: id },
+                        success: function (res) {
+                            if (res.success) {
+                                Swal.fire('Thành công!', res.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Lỗi!', res.message, 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Lỗi!', 'Có lỗi xảy ra!', 'error');
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>

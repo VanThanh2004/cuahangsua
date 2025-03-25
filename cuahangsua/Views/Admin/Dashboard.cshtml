@@ -1,0 +1,136 @@
+﻿@{
+    ViewData["Title"] = "Trang Quản Trị Admin";
+}
+
+<!-- Menu dropdown -->
+<div class="dropdown mb-3">
+    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+        Danh mục quản lý
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <li><a class="dropdown-item" href="@Url.Action("Dashboard", "Admin")">Danh sách khách hàng</a></li>
+        <li><a class="dropdown-item" href="@Url.Action("Products", "Admin")">Quản lý sản phẩm</a></li>
+        <li><a class="dropdown-item" href="@Url.Action("DonHang", "Admin")">Quản lý đơn hàng</a></li>
+    </ul>
+</div>
+
+<h3>Danh sách khách hàng</h3>
+
+<!-- Nút mở form thêm khách hàng -->
+<button id="btn-show-form" class="btn btn-success mb-3">Thêm khách hàng</button>
+
+<!-- Form thêm/sửa khách hàng -->
+<form id="user-form" style="display: none;">
+    <input type="hidden" id="user-id">
+    <div class="mb-3">
+        <label class="form-label">Họ và Tên:</label>
+        <input type="text" id="user-fullname" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email:</label>
+        <input type="email" id="user-email" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Mật khẩu:</label>
+        <input type="password" id="user-password" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <button type="button" id="btn-cancel" class="btn btn-secondary">Hủy</button>
+</form>
+
+<table class="table mt-4">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Họ và Tên</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody id="user-table">
+        @foreach (var user in ViewData["Users"] as List<cuahangsua.Models.User>)
+        {
+            <tr data-id="@user.Id">
+                <td class="user-email">@user.Email</td>
+                <td class="user-fullname">@user.FullName</td>
+                <td>
+                    <button class="btn btn-warning btn-edit">Sửa</button>
+                    <button class="btn btn-danger btn-delete">Xóa</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Mở form thêm khách hàng
+        $("#btn-show-form").click(function () {
+            $("#user-form").show();
+            $("#btn-show-form").hide();
+            $("#user-id").val("");
+            $("#user-fullname").val("");
+            $("#user-email").val("");
+            $("#user-password").val("");
+        });
+
+        // Hủy nhập
+        $("#btn-cancel").click(function () {
+            $("#user-form").hide();
+            $("#btn-show-form").show();
+        });
+
+        // Xử lý lưu khách hàng (thêm/sửa)
+        $("#user-form").submit(function (e) {
+            e.preventDefault();
+            var id = $("#user-id").val();
+            var fullname = $("#user-fullname").val();
+            var email = $("#user-email").val();
+            var password = $("#user-password").val();
+
+            $.ajax({
+                type: "POST",
+                url: id ? "/Admin/UpdateUser" : "/Admin/AddUser",
+                data: { Id: id, FullName: fullname, Email: email, Password: password },
+                success: function (res) {
+                    if (res.success) {
+                        location.reload();
+                    } else {
+                        alert(res.message);
+                    }
+                }
+            });
+        });
+
+        // Nút sửa
+        $(".btn-edit").click(function () {
+            var row = $(this).closest("tr");
+            $("#user-id").val(row.data("id"));
+            $("#user-fullname").val(row.find(".user-fullname").text());
+            $("#user-email").val(row.find(".user-email").text());
+            $("#user-password").val("");
+            $("#user-form").show();
+            $("#btn-show-form").hide();
+        });
+
+        // Nút xóa
+        $(".btn-delete").click(function () {
+            var id = $(this).closest("tr").data("id");
+
+            if (confirm("Bạn có chắc muốn xóa khách hàng này?")) {
+                $.ajax({
+                    type: "POST",
+                    url: "/Admin/DeleteUser",
+                    data: { Id: id },
+                    success: function (res) {
+                        if (res.success) {
+                            location.reload();
+                        } else {
+                            alert(res.message);
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>

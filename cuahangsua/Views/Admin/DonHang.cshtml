@@ -1,0 +1,188 @@
+﻿@model List<cuahangsua.Models.donhang>
+
+@{
+    ViewData["Title"] = "Quản lý Đơn hàng";
+}
+<a href="/Admin/Login" class="btn btn-secondary mb-3">⬅ Quay Lại</a>
+<h2>Danh sách Đơn hàng</h2>
+
+<!-- Nút mở form thêm đơn hàng -->
+<button id="btn-show-form" class="btn btn-success mb-3">Thêm đơn hàng</button>
+
+<!-- Form thêm/sửa đơn hàng -->
+<form id="donhang-form" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="donhang-id" name="Id">
+    <div class="mb-3">
+        <label class="form-label">Mã sản phẩm:</label>
+        <input type="number" id="donhang-productid" name="ProductId" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Tên sản phẩm:</label>
+        <input type="text" id="donhang-productname" name="ProductName" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Số lượng:</label>
+        <input type="number" id="donhang-quantity" name="Quantity" class="form-control" required min="1">
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Giá:</label>
+        <input type="number" step="0.01" id="donhang-price" name="Price" class="form-control" required min="0">
+    </div>
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <button type="button" id="btn-cancel" class="btn btn-secondary">Hủy</button>
+</form>
+
+<!-- Danh sách đơn hàng -->
+@if (!Model.Any())
+{
+    <p>Chưa có đơn hàng nào.</p>
+}
+else
+{
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Mã sản phẩm</th>
+                <th>Tên sản phẩm</th>
+                <th>Số lượng</th>
+                <th>Giá</th>
+                <th>Tổng tiền</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var donHang in Model)
+            {
+                <tr data-id="@donHang.Id">
+                    <td>@donHang.Id</td>
+                    <td>@donHang.ProductId</td>
+                    <td>@donHang.ProductName</td>
+                    <td>@donHang.Quantity</td>
+                    <td>@donHang.Price.ToString("N0") VNĐ</td>
+                    <td>@((donHang.Quantity * donHang.Price).ToString("N0")) VNĐ</td>
+                    <td>
+                        <button class="btn btn-warning btn-edit">Sửa</button>
+                        <button class="btn btn-danger btn-delete">Xóa</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<!-- jQuery và SweetAlert2 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function () {
+        // Mở form thêm đơn hàng
+        $("#btn-show-form").click(function () {
+            $("#donhang-form").show();
+            $("#btn-show-form").hide();
+            $("#donhang-id").val("");
+            $("#donhang-productid").val("");
+            $("#donhang-productname").val("");
+            $("#donhang-quantity").val("");
+            $("#donhang-price").val("");
+        });
+
+        // Hủy nhập
+        $("#btn-cancel").click(function () {
+            $("#donhang-form").hide();
+            $("#btn-show-form").show();
+        });
+
+        // Xử lý lưu đơn hàng (thêm/sửa)
+        $("#donhang-form").submit(function (e) {
+            e.preventDefault();
+            var id = $("#donhang-id").val();
+            var productId = $("#donhang-productid").val();
+            var productName = $("#donhang-productname").val();
+            var quantity = parseInt($("#donhang-quantity").val());
+            var price = parseFloat($("#donhang-price").val().replace(/[^0-9.-]+/g, ""));
+
+            var url = id ? "/Admin/UpdateDonHang" : "/Admin/AddDonHang";
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: { Id: id, ProductId: productId, ProductName: productName, Quantity: quantity, Price: price },
+                headers: {
+                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (res) {
+                    if (res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công!',
+                            text: res.message,
+                            timer: 1500
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Lỗi!', res.message, 'error');
+                    }
+                },
+                error: function (err) {
+                    Swal.fire('Lỗi!', 'Có lỗi xảy ra. Vui lòng thử lại!', 'error');
+                }
+            });
+        });
+
+        // Nút sửa
+        $(".btn-edit").click(function () {
+            var row = $(this).closest("tr");
+            $("#donhang-id").val(row.data("id"));
+            $("#donhang-productid").val(row.find("td:nth-child(2)").text());
+            $("#donhang-productname").val(row.find("td:nth-child(3)").text());
+            $("#donhang-quantity").val(row.find("td:nth-child(4)").text());
+            $("#donhang-price").val(parseFloat(row.find("td:nth-child(5)").text().replace(/[^0-9.-]+/g, "")));
+            $("#donhang-form").show();
+            $("#btn-show-form").hide();
+        });
+
+        // Nút xóa
+        $(".btn-delete").click(function () {
+            var id = $(this).closest("tr").data("id");
+
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: "Bạn có chắc muốn xóa đơn hàng này không?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/Admin/DeleteDonHang",
+                        data: { id: id },
+                        headers: {
+                            "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Thành công!',
+                                    text: res.message,
+                                    timer: 1500
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Lỗi!', res.message, 'error');
+                            }
+                        },
+                        error: function (err) {
+                            Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xóa đơn hàng!', 'error');
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>

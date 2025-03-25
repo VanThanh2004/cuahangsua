@@ -1,0 +1,12 @@
+﻿@model cuahangsua.Models.Product
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+}
+
+<h2>Chi tiết sản phẩm</h2>
+
+<p><strong>Tên sản phẩm:</strong> @Model.Name</p>
+<p><strong>Giá:</strong> @Model.Price</p>
+<p><strong>Mô tả:</strong> @Model.Description</p>
+
+<a href="@Url.Action("Products", "Admin")" class="btn btn-primary">Quay lại</a>

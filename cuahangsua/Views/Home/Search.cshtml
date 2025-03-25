@@ -1,0 +1,31 @@
+﻿@model List<Product>
+
+<h2 class="text-center my-4">Kết quả tìm kiếm</h2>
+
+@if (Model == null || !Model.Any())
+{
+    <p class="text-muted text-center">Không tìm thấy sản phẩm nào.</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var product in Model)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card h-100 shadow-sm border-0 product-card">
+                    <a href="/Product/Details/@product.Id">
+                        <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name"
+                             style="height: 200px; object-fit: cover; border-radius: 10px 10px 0 0;">
+                    </a>
+                    <div class="card-body text-center">
+                        <h6 class="card-title text-truncate" title="@product.Name">@product.Name</h6>
+                        <p class="text-danger fw-bold">@product.Price.ToString("N0") VNĐ</p>
+                        <button class="btn btn-success w-100 add-to-cart" data-id="@product.Id">
+                            🛒 Thêm vào giỏ hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

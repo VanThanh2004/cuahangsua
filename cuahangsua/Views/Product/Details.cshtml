@@ -1,0 +1,63 @@
+﻿@model ProductControl.Controllers.Product
+
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-5">
+            <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded shadow">
+        </div>
+        <div class="col-md-7">
+            <h2 class="mb-3">@Model.Name</h2>
+            <p><strong>Mô tả:</strong> @Model.Description</p>
+            <p><strong>Giá:</strong> <span class="text-danger fw-bold">@Model.Price.ToString("N0") VNĐ</span></p>
+            <a href="javascript:history.back()" class="btn btn-secondary">🔙 Quay lại</a>
+            <button class="btn btn-primary add-to-cart" data-id="@Model.Id">🛒 Thêm vào giỏ hàng</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            $(".add-to-cart").click(function () {
+                var productId = $(this).data("id");
+
+                $.ajax({
+                    url: "/Cart/Add",
+                    type: "POST",
+                    data: { id: productId },
+                    success: function (response) {
+                        if (response.success) {
+                            $("#cart-count").text(response.cartCount);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi!',
+                                text: response.message
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi!',
+                            text: 'Có lỗi xảy ra khi thêm sản phẩm!'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

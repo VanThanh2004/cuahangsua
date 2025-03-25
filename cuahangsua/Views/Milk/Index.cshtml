@@ -1,0 +1,75 @@
+﻿@model List<cuahangsua.Models.Product>
+
+@{
+    ViewData["Title"] = "Sữa Cho Bé";
+}
+
+<h2 class="text-center my-4">🥛 Sữa Cho Bé</h2>
+
+@if (Model == null || !Model.Any())
+{
+        <p class="text-muted text-center">🚫 Hiện chưa có sản phẩm nào.</p>
+}
+else
+{
+        <div class="row">
+        @foreach (var product in Model)
+        {
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                        <div class="card product-card">
+                            <img src="@(string.IsNullOrEmpty(product.ImageUrl) ? "/images/default.png" : product.ImageUrl)"
+                                 class="card-img-top" alt="@product.Name">
+                            <div class="card-body text-center">
+                                <h5 class="card-title text-truncate" title="@product.Name">@product.Name</h5>
+                                <p class="description">@product.Description</p>
+                                <p class="price">@product.Price.ToString("N0") VNĐ</p>
+                                        <button class="btn btn-success w-100 add-to-cart" data-id="@product.Id">🛒 Thêm vào giỏ hàng</button>
+                            </div>
+                        </div>
+                    </div>
+        }
+        </div>
+}
+
+@section Scripts {
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            $(document).ready(function () {
+                $(".add-to-cart").click(function () {
+                    var productId = $(this).data("id");
+
+                    $.ajax({
+                        url: "/Cart/Add",
+                        type: "POST",
+                        data: { id: productId },
+                        success: function (response) {
+                            if (response.success) {
+                                $("#cart-count").text(response.cartCount);
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Thành công!',
+                                    text: response.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Lỗi!',
+                                    text: response.message
+                                });
+                            }
+                        },
+                        error: function () {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi!',
+                                text: 'Có lỗi xảy ra khi thêm sản phẩm!'
+                            });
+                        }
+                    });
+                });
+            });
+        </script>
+}

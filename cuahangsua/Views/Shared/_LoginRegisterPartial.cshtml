@@ -1,0 +1,86 @@
+﻿<!-- Modal Đăng Nhập / Đăng Ký -->
+<div class="modal fade" id="loginRegisterModal" tabindex="-1" aria-labelledby="loginRegisterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loginRegisterModalLabel">Đăng Nhập / Đăng Ký</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Tabs Chuyển Đổi -->
+                <ul class="nav nav-tabs" id="authTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="login-tab" data-bs-toggle="tab" href="#loginForm">Đăng Nhập</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="register-tab" data-bs-toggle="tab" href="#registerForm">Đăng Ký </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="admin-tab" data-bs-toggle="tab" href="#adminForm">Admin</a>
+                    </li>
+                </ul>
+
+                <!-- Nội dung của Tabs -->
+                <div class="tab-content mt-3">
+                    <!-- Form Đăng Nhập  -->
+                    <div class="tab-pane fade show active" id="loginForm">
+                        <form method="post" asp-controller="Account" asp-action="Login">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="Email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Mật khẩu</label>
+                                <input type="password" class="form-control" name="Password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Đăng Nhập</button>
+                        </form>
+                    </div>
+
+                    <!-- Form Đăng Ký -->
+                    <div class="tab-pane fade" id="registerForm">
+                        <form method="post" asp-controller="Account" asp-action="Register">
+                            <div class="mb-3">
+                                <label class="form-label">Họ và Tên</label>
+                                <input type="text" class="form-control" name="FullName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="Email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Mật khẩu</label>
+                                <input type="password" class="form-control" name="Password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Xác nhận mật khẩu</label>
+                                <input type="password" class="form-control" name="ConfirmPassword" required>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">Đăng Ký</button>
+                        </form>
+                    </div>
+                    <!-- Form Đăng Nhập Admin -->
+                    <div class="tab-pane fade" id="adminForm">
+                        <form method="post" asp-controller="Admin" asp-action="Login">
+                            <div class="mb-3">
+                                <label class="form-label">Email </label>
+                                <input type="email" class="form-control" name="Email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Mật khẩu</label>
+                                <input type="password" class="form-control" name="Password" required>
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100">Đăng Nhập Admin</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Nhúng CSS -->
+<link rel="stylesheet" href="~/css/auth.css">
+
+<!-- Nhúng JavaScript -->
+<script src="~/js/auth.js"></script>

@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Cửa Hàng Mẹ & Bé</title>
+    <!-- Bootstrap & FontAwesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/chatbox.css" />
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header-container">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="logo">
+                <a asp-controller="Home" asp-action="Index">
+                    <img src="~/images/haha-logo.png" alt="Cửa Hàng Mẹ & Bé" onerror="this.onerror=null; this.src='/images/default-logo.png';">
+                </a>
+            </div>
+
+            <div class="search-bar position-relative">
+                <input type="text" placeholder="Ba mẹ cần tìm gì cho bé?" id="searchInput" autocomplete="off">
+                <button class="search-btn">🔍</button>
+                <div id="searchResults" class="search-results"></div>
+            </div>
+
+            <div class="d-flex align-items-center">
+                <div class="user-login me-3">
+                    @if (Context.Session.GetString("UserEmail") != null)
+                    {
+                        <span style="color: white;">Chào Bạn <strong>@Context.Session.GetString("UserName")</strong></span>
+                        <a asp-controller="Account" asp-action="Logout" class="btn btn-outline-danger ms-2">
+                            <i class="fas fa-sign-out-alt"></i> Đăng Xuất
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#loginRegisterModal">
+                            <i class="fas fa-user-circle"></i> Đăng Ký / Đăng Nhập
+                        </button>
+                    }
+                </div>
+
+                <div class="user-cart">
+                    <a asp-controller="Cart" asp-action="Index" class="btn cart-btn">
+                        <i class="fas fa-shopping-cart"></i> Giỏ hàng (<span id="cart-count">@(ViewBag.CartCount ?? 0)</span> 🛒)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Trang Chủ</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Store" asp-action="Index">Cửa Hàng</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Milk" asp-action="Index">Sữa</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Clothes" asp-action="Index">Quần Áo</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Toys" asp-action="Index">Đồ Chơi</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Bim" asp-action="Index">Bỉm</a></li>
+                    @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                    {
+                        <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Orders">Quản lý Đơn hàng</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-logo">
+                <img src="/images/haha-logo.png" alt="Cửa Hàng Mẹ & Bé">
+            </div>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Thông Tin Cửa Hàng</h4>
+                    <p>📍75 Đường A, Nha Trang, Khánh Hòa</p>
+                    <p>⏰ Thứ 2 - CN: 8:00 - 21:00</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Hỗ Trợ Khách Hàng</h4>
+                    <ul>
+                        <li><a href="Cart/">Hướng Dẫn Thanh Toán</a></li>
+                        <li><a href="#">Chính Sách Bảo Hành</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Liên Hệ</h4>
+                    <p>📧 Github: <a href="https://github.com/">Github</a></p>
+                    <p>📞 Hotline: 0123 456 789</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Theo Dõi Chúng Tôi</h4>
+                    <div class="social-icons">
+                        <a href="https://vi-vn.facebook.com/login/"><img src="/images/facebook.png" alt="Facebook"></a>
+                        <a href="https://github.com/"><img src="/images/github.png" alt="github"></a>
+                        <a href="https://shopee.vn/"><img src="/images/shopee.png" alt="Shopee"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    @await Html.PartialAsync("_LoginRegisterPartial")
+    <partial name="_ChatBox" />
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.jQuery || document.write('<script src="~/lib/jquery/dist/jquery.min.js"><\/script>');
+        window.bootstrap || document.write('<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"><\/script>');
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".add-to-cart-btn").forEach(button => {
+                button.addEventListener("click", function () {
+                    let cartCountElement = document.getElementById("cart-count");
+                    let currentCount = parseInt(cartCountElement.innerText) || 0;
+                    cartCountElement.innerText = currentCount + 1;
+                });
+            });
+        });
+    </script>
+    <script src="~/js/search.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/auth.js" asp-append-version="true"></script>
+    <script src="~/js/chatbox.js" defer></script>
+
+    <script>
+        $(document).ready(function () {
+            $.get("/Cart/GetCartCount", function (data) {
+                $("#cart-count").text(data.count);
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

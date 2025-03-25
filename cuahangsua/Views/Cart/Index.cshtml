@@ -1,0 +1,151 @@
+﻿@model List<cuahangsua.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<h2>🛒 Giỏ hàng của bạn</h2>
+
+@if (!Model.Any())
+{
+    <p>Giỏ hàng trống.</p>
+}
+else
+{
+    <table class="table">
+        <tr>
+            <th>Sản phẩm</th>
+            <th>Giá</th>
+            <th>Số lượng</th>
+            <th>Thành tiền</th>
+            <th>Hành động</th>
+        </tr>
+        @foreach (var item in Model)
+        {
+            <tr id="row-@item.Product.Id">
+                <td>@item.Product.Name</td>
+                <td>@item.Product.Price.ToString("N0") VNĐ</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-secondary update-quantity" data-id="@item.Product.Id" data-change="-1">-</button>
+                    <span id="quantity-@item.Product.Id">@item.Quantity</span>
+                    <button class="btn btn-sm btn-outline-secondary update-quantity" data-id="@item.Product.Id" data-change="1">+</button>
+                </td>
+                <td id="total-@item.Product.Id">@((item.Product.Price * item.Quantity).ToString("N0")) VNĐ</td>
+                <td>
+                    <button class="btn btn-danger remove-item" data-id="@item.Product.Id">Xóa</button>
+                </td>
+            </tr>
+        }
+    </table>
+    <h3>Tổng tiền: <span id="total-price">@ViewBag.TotalPrice.ToString("N0") VNĐ</span></h3>
+    <button id="checkout-btn" class="btn btn-success">🛒Thanh toán</button>
+}
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            function formatCurrency(amount) {
+                return amount.toLocaleString("vi-VN") + " VNĐ";
+            }
+
+            function updateCartItem(id, quantity) {
+                $.post("/Cart/UpdateQuantityAjax", { id: id, quantity: quantity }, function (response) {
+                    if (response.success) {
+                        $("#quantity-" + id).text(quantity);
+                        $("#total-" + id).text(formatCurrency(response.itemTotal));
+                        $("#total-price").text(formatCurrency(response.totalPrice));
+                        $.get("/Cart/GetCartCount", function (data) {
+                            $("#cart-count").text(data.count);
+                        });
+                    } else {
+                        Swal.fire('Lỗi!', response.message || 'Không thể cập nhật số lượng!', 'error');
+                    }
+                }).fail(function () {
+                    Swal.fire('Lỗi!', 'Có lỗi xảy ra khi cập nhật giỏ hàng!', 'error');
+                });
+            }
+
+            $(".update-quantity").click(function () {
+                var id = $(this).data("id");
+                var change = parseInt($(this).data("change"));
+                var quantityElement = $("#quantity-" + id);
+                var newQuantity = parseInt(quantityElement.text()) + change;
+
+                if (newQuantity > 0 && newQuantity <= 100) {
+                    updateCartItem(id, newQuantity);
+                } else if (newQuantity <= 0) {
+                    Swal.fire({
+                        title: 'Xóa sản phẩm?',
+                        text: 'Bạn có muốn xóa sản phẩm này không?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Xóa',
+                        cancelButtonText: 'Hủy'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            removeCartItem(id);
+                        }
+                    });
+                } else {
+                    Swal.fire('Cảnh báo!', 'Số lượng tối đa là 100!', 'warning');
+                }
+            });
+
+            $(".remove-item").click(function () {
+                removeCartItem($(this).data("id"));
+            });
+
+            function removeCartItem(id) {
+                $.post("/Cart/RemoveAjax", { id: id }, function (response) {
+                    if (response.success) {
+                        $("#row-" + id).remove();
+                        $("#total-price").text(formatCurrency(response.totalPrice));
+                        $.get("/Cart/GetCartCount", function (data) {
+                            $("#cart-count").text(data.count);
+                        });
+                    } else {
+                        Swal.fire('Lỗi!', 'Không thể xóa sản phẩm!', 'error');
+                    }
+                }).fail(function () {
+                    Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xóa sản phẩm!', 'error');
+                });
+            }
+
+            $("#checkout-btn").click(function () {
+                Swal.fire({
+                    title: 'Xác nhận thanh toán?',
+                    text: 'Bạn có chắc muốn thanh toán giỏ hàng này không?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Thanh toán',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post("/Cart/CheckoutAjax", {}, function (data) {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '🛍 Thanh Toán Thành Công!',
+                                    text: 'Cảm Ơn Quý Khách Đã Ghé Thăm Shop Em! 🎉',
+                                    showConfirmButton: false,
+                                    timer: 3000
+                                }).then(() => {
+                                    $.get("/Cart/GetCartCount", function (data) {
+                                        $("#cart-count").text(data.count);
+                                    });
+                                    window.location.href = "/Home/Index";
+                                });
+                            } else {
+                                Swal.fire('Lỗi!', data.message || 'Không thể thanh toán!', 'error');
+                            }
+                        }).fail(function () {
+                            Swal.fire('Lỗi!', 'Có lỗi xảy ra khi thanh toán!', 'error');
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}
